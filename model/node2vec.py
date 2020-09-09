@@ -51,7 +51,7 @@ class Graph():
         G = self.G
         walks = []
         nodes = list(G.nodes())
-        for walk_iter in tqdm(range(num_walks), desc='Walk iteration:'):
+        for walk_iter in tqdm(range(num_walks), desc='Walk iteration'):
             random.shuffle(nodes)
             for node in nodes:
                 walks.append(self.node2vec_walk(walk_length=walk_length, start_node=node))

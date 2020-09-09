@@ -6,7 +6,6 @@ Version:  V 0.1
 File:     ding.py
 Describe: Write during the internship at Hikvison, Github link: https://github.com/Deeachain/GraphEmbeddings
 """
-# from __future__ import print_function
 import numpy
 from sklearn.metrics import f1_score, accuracy_score
 from sklearn.svm import SVC
@@ -30,6 +29,7 @@ class Classifier(object):
         for average in averages:
             results[average] = f1_score(Y, Y_, average=average)
         results['acc'] = accuracy_score(Y, Y_)
+        print('Evaluating classifier using rest nodes...')
         print('-------------------')
         print(results)
         print('-------------------')
