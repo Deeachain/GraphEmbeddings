@@ -27,10 +27,6 @@ def parse_args():
                         help='Input graph path')
     parser.add_argument('--input_label', type=str, default='graph/cora/progressed/cora_labels.txt',
                         help='Input graph path')
-    # parser.add_argument('--input', type=str, default='graph/wiki/wiki_edgelist.txt',
-    #                     help='Input graph path')
-    # parser.add_argument('--input_label', type=str, default='graph/wiki/wiki_labels.txt',
-    #                     help='Input graph path')
     parser.add_argument('--output_emb', type=str, default='output/embedding/',
                         help='Embeddings path')
     parser.add_argument('--output_pic', type=str, default='output/visualization/',
