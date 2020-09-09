@@ -206,7 +206,7 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
     return G
 
 
-def load_edgelist(file_, undirected=True):
+def load_edgelist(file_, directed=True):
     G = Graph()
     with open(file_) as f:
         for l in f:
@@ -214,7 +214,7 @@ def load_edgelist(file_, undirected=True):
             x = int(x)
             y = int(y)
             G[x].append(y)
-            if undirected:
+            if not directed:
                 G[y].append(x)
 
     G.make_consistent()
