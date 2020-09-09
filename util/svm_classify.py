@@ -13,8 +13,9 @@ from sklearn.svm import SVC
 
 class Classifier(object):
 
-    def __init__(self, embeddings):
+    def __init__(self, embeddings, args):
         self.embeddings = embeddings
+        self.args = args
         self.clf = SVC(kernel='rbf')  # 'rbf','poly','sigmoid', 'linear'
 
     def train(self, X, Y):
@@ -33,6 +34,9 @@ class Classifier(object):
         print('-------------------')
         print(results)
         print('-------------------')
+
+        with open(self.args.log_file, 'w+') as f:
+            f.write('{}\n{}'.format(self.args, results))
         return results
 
     def predict(self, X):

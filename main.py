@@ -21,12 +21,16 @@ def parse_args():
     Parses the node2vec arguments.
     '''
     parser = argparse.ArgumentParser(description="Run deepwalk、line、node2vec.")
-    parser.add_argument('--model_name', type=str, default='deepwalk',
+    parser.add_argument('--model_name', type=str, default='node2vec',
                         help='Model choice in [deepwalk、line、node2vec]')
     parser.add_argument('--input', type=str, default='graph/cora/progressed/cora_edges.txt',
                         help='Input graph path')
     parser.add_argument('--input_label', type=str, default='graph/cora/progressed/cora_labels.txt',
                         help='Input graph path')
+    # parser.add_argument('--input', type=str, default='graph/wiki/wiki_edgelist.txt',
+    #                     help='Input graph path')
+    # parser.add_argument('--input_label', type=str, default='graph/wiki/wiki_labels.txt',
+    #                     help='Input graph path')
     parser.add_argument('--output_emb', type=str, default='output/embedding/',
                         help='Embeddings path')
     parser.add_argument('--output_pic', type=str, default='output/visualization/',
@@ -43,9 +47,9 @@ def parse_args():
                         help='Number of epochs in SGD')
     parser.add_argument('--workers', type=int, default=8,
                         help='Number of parallel workers. Default is 8.')
-    parser.add_argument('--p', type=float, default=1,
+    parser.add_argument('--p', type=float, default=0.25,
                         help='Return hyperparameter. Default is 1.')
-    parser.add_argument('--q', type=float, default=1,
+    parser.add_argument('--q', type=float, default=4,
                         help='Inout hyperparameter. Default is 1.')
     parser.add_argument('--weighted', type=bool, default=False,
                         help='Graph is (un)weighted. Default is unweighted.')
@@ -82,7 +86,8 @@ def main(args):
     for node in nx_G.nodes():
         embeddings[str(node)] = model.wv[str(node)]
 
-    evaluate_embeddings(embeddings=embeddings, label_file=args.input_label)
+    args.log_file = args.output_pic + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.log'
+    evaluate_embeddings(embeddings=embeddings, label_file=args.input_label, args=args)
 
     if not os.path.exists(args.output_pic):
         os.makedirs(args.output_pic)

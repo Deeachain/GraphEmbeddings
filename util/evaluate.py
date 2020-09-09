@@ -31,9 +31,9 @@ def read_node_label(filename, skip_head=False):
     return X, Y
 
 
-def evaluate_embeddings(embeddings, label_file):
+def evaluate_embeddings(embeddings, label_file, args):
     X, Y = read_node_label(label_file)
     tr_frac = 0.8
     print("Training classifier using {:.2f}% nodes...".format(tr_frac * 100))
-    clf = Classifier(embeddings=embeddings)
+    clf = Classifier(embeddings=embeddings, args=args)
     clf.split_train_evaluate(X, Y, tr_frac)

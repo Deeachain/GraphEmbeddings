@@ -14,6 +14,7 @@ import random
 from itertools import permutations
 from scipy.io import loadmat
 from scipy.sparse import issparse
+from tqdm import tqdm
 
 
 
@@ -130,7 +131,7 @@ def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,
 
     nodes = list(G.nodes())
 
-    for cnt in range(num_paths):  # 每个节点的path数量
+    for cnt in tqdm(range(num_paths), desc='Walk iteration'):  # 每个节点的path数量
         rand.shuffle(nodes)
         for node in nodes:  # nodes是打乱的节点->keys
             walks.append(G.random_walk(path_length, rand=rand, alpha=alpha, start=node))
