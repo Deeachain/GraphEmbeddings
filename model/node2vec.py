@@ -94,7 +94,6 @@ class Graph():
             alias_nodes[node] = alias_setup(normalized_probs)
 
         alias_edges = {}
-        triads = {}
 
         if is_directed:
             for edge in G.edges():
