@@ -21,7 +21,7 @@ class Line(nn.Module):
         super(Line, self).__init__()
 
         assert order in ["first", "second", "all"], print("Order should either be [first, second, all]")
-
+        self.dict_size = dict_size
         self.embed_dim = embed_dim
         self.order = order
         self.first_embeddings = nn.Embedding(dict_size, embed_dim)
@@ -31,62 +31,68 @@ class Line(nn.Module):
         if order == "second":
             self.contextnodes_embeddings = nn.Embedding(dict_size, embed_dim)
             # Initialization
-            self.contextnodes_embeddings.weight.data = self.contextnodes_embeddings.weight.data.uniform_(
-                -1, 1) / embed_dim
+            self.contextnodes_embeddings.weight.data = self.contextnodes_embeddings.weight.data.uniform_(-1, 1)
 
         # Initialization
-        self.first_embeddings.weight.data = self.first_embeddings.weight.data.uniform_(
-            -1, 1) / embed_dim
-        self.second_embeddings.weight.data = self.first_embeddings.weight.data.uniform_(
-            -1, 1) / embed_dim
+        # self.first_embeddings.weight.data = self.first_embeddings.weight.data.uniform_(-1, 1)
+        # self.second_embeddings.weight.data = self.first_embeddings.weight.data.uniform_(-1, 1)
 
-    def forward(self, v_i, v_j, negsamples, device):
+    def forward(self, nodeindex, v_i, v_j, negsamples, device):
+        v_i = torch.LongTensor(v_i)
+        v_j = torch.LongTensor(v_j)
+        negsamples = [torch.LongTensor(negative) for negative in negsamples]
+
+        v_i = torch.Tensor(np.eye(self.dict_size)[v_i]).to(device)
+        v_j = torch.Tensor(np.eye(self.dict_size)[v_j]).to(device)
+        negative_sample_onehot = [torch.Tensor(np.eye(self.dict_size)[negative]).to(device) for negative in negsamples]
+
+        first_embeddings = self.first_embeddings(torch.LongTensor(nodeindex)).to(device)
+
+        v_i_embedding = torch.mm(v_i, first_embeddings)
+        v_j_embedding = torch.mm(v_j, first_embeddings)
+
+        negative_sample_embedding = [torch.mm(negative, first_embeddings) for negative in negative_sample_onehot]
 
         if self.order == 'first':
-            v_i = self.first_embeddings(v_i).to(device)
-            v_j = self.first_embeddings(v_j).to(device)
-
-
-            mulpositivebatch = torch.mul(v_i, v_j)
+            mulpositivebatch = torch.mul(v_i_embedding, v_j_embedding)
             pos_loss = F.logsigmoid(torch.sum(mulpositivebatch, dim=1))
 
             neg_loss = 0
-            for negativenodes in negsamples:
-                negativeemb = -self.first_embeddings(negativenodes).to(device)
-                mulnegativebatch = torch.mul(v_i, negativeemb)
+            for negative_embedding in negative_sample_embedding:
+                mulnegativebatch = torch.mul(v_i_embedding, negative_embedding)
                 neg_loss += F.logsigmoid(-torch.sum(mulnegativebatch, dim=1))
             loss = pos_loss + neg_loss
         elif self.order == 'second':
             v_i = self.second_embeddings(v_i).to(device)
             v_j = self.contextnodes_embeddings(v_j).to(device)
-            negativenodes = self.contextnodes_embeddings(negsamples).to(device)
+            negative_embedding = self.contextnodes_embeddings(negsamples).to(device)
 
             mulpositivebatch = torch.mul(v_i, v_j)
             pos_loss = F.logsigmoid(torch.sum(mulpositivebatch, dim=1))
 
-            mulnegativebatch = torch.mul(v_i, negativenodes)
+            mulnegativebatch = torch.mul(v_i, negative_embedding)
             neg_loss = F.logsigmoid(-torch.sum(mulnegativebatch, dim=1))
             loss = pos_loss + neg_loss
         elif self.order == 'all':
             v_i = self.second_embeddings(v_i).to(device)
             v_j1 = self.contextnodes_embeddings(v_j).to(device)
-            negativenodes1 = -self.contextnodes_embeddings(negsamples).to(device)
+            negative_embedding1 = -self.contextnodes_embeddings(negsamples).to(device)
 
             mulpositivebatch1 = torch.mul(v_i, v_j1)
             pos_loss1 = F.logsigmoid(torch.sum(mulpositivebatch1, dim=1))
 
-            mulnegativebatch1 = torch.mul(v_i, negativenodes1)
+            mulnegativebatch1 = torch.mul(v_i, negative_embedding1)
             neg_loss1 = torch.sum(F.logsigmoid(torch.sum(mulnegativebatch1, dim=2)), dim=1)
             loss1 = pos_loss1 + neg_loss1
 
             v_i = self.second_embeddings(v_i).to(device)
             v_j2 = self.contextnodes_embeddings(v_j).to(device)
-            negativenodes2 = -self.contextnodes_embeddings(negsamples).to(device)
+            negative_embedding2 = -self.contextnodes_embeddings(negsamples).to(device)
 
             mulpositivebatch2 = torch.mul(v_i, v_j2)
             pos_loss2 = F.logsigmoid(torch.sum(mulpositivebatch2, dim=1))
 
-            mulnegativebatch2 = torch.mul(v_i.view(len(v_i), 1, self.embed_dim), negativenodes2)
+            mulnegativebatch2 = torch.mul(v_i.view(len(v_i), 1, self.embed_dim), negative_embedding2)
             neg_loss2 = torch.sum(F.logsigmoid(torch.sum(mulnegativebatch2, dim=2)), dim=1)
             loss2 = pos_loss2 + neg_loss2
 
@@ -105,6 +111,7 @@ def main(args):
 
     node2index = dict(zip(nodes, range(len(nodes))))
     dict_size = len(nodes)
+    node_index = torch.LongTensor(range(0,dict_size))
     model = Line(dict_size, embed_dim=args.dimensions, order="first", num_negative=args.num_negative)
 
     NodeDataLoaderclass = NodeDataLoader(args=args, G=G, J=J, q=q, nodes=nodes,
@@ -113,33 +120,34 @@ def main(args):
 
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
 
-    loss_record = []
     for epoch in range(args.iter):
         total_batches = len(train_loader)
 
         pbar = tqdm(iterable=enumerate(train_loader), total=total_batches,
                     desc='Epoch {}/{}'.format(epoch, args.iter))
-
+        loss_record = []
         for iteration, batch in pbar:
             v_i = batch[0]
             v_j = batch[1]
             negsamples = batch[2]
 
-            loss = model(v_i, v_j, negsamples, device)
+            loss = model(node_index, v_i, v_j, negsamples, device)
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             pbar.set_postfix(train_loss=float(loss))
             loss_record.append(loss)
+            first_emb = model.first_embeddings.weight.data.numpy()
+            second_emb = model.second_embeddings.weight.data.numpy()
 
     print('train loss is {}'.format(sum(loss_record) / len(loss_record)))
 
     if not os.path.exists(args.output_emb):
         os.makedirs(args.output_emb)
     emb_path = args.output_emb + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.emb'
-    first_emb = model.first_embeddings.weight.data.numpy()
-    second_emb = model.first_embeddings.weight.data
+    print(model.first_embeddings.weight.data.numpy().shape)
+
 
     index2node = dict(zip(range(len(nodes)), nodes))
     np.savetxt(emb_path, first_emb, fmt='%1.8f')
