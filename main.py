@@ -42,9 +42,9 @@ def parse_args():
                         help='Number of walks per source. Default is 10.')
     parser.add_argument('--window-size', type=int, default=10,
                         help='Context size for optimization. Default is 10.')
-    parser.add_argument('--num_negative', type=int, default=10,
-                        help='Number of negativate sample. Default is 10.')
-    parser.add_argument('--iter', default=500, type=int,
+    parser.add_argument('--num_negative', type=int, default=5,
+                        help='Number of negativate sample. Default is 5.')
+    parser.add_argument('--iter', default=10, type=int,
                         help='Number of epochs in SGD, Line Defalut should ')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batchsize for line')
