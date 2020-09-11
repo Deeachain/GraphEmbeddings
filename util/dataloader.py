@@ -10,6 +10,7 @@ import random
 import numpy as np
 import networkx as nx
 from torch.utils import data
+import time
 
 
 def read_graph(args):
@@ -138,40 +139,62 @@ class GraphTrainDataSet(data.Dataset):
         Args:
     """
 
-    def __init__(self, args):
-        self.G = read_graph(args)
+    def __init__(self, G, J, q, nodes, node2index, index2edge, num_negativate):
         print('Graph Creating...')
+        self.G = G
+        self.J = J
+        self.q = q
+        self.nodes = nodes
+        self.node2index = node2index
+        self.index2edge = index2edge
+        self.num_negative = num_negativate
 
     def __len__(self):
         return len(self.G.edges())
 
     def __getitem__(self, index):
-        edge_index_in_alias = alias_draw(J=get_alias_edge(self.G)[0][0], q=get_alias_edge(self.G)[0][1])
-        edge = get_alias_edge(self.G)[1][edge_index_in_alias]
+        edge_index_in_alias = alias_draw(J=self.J, q=self.q)
+        edge = self.index2edge[edge_index_in_alias]
+
         # postive
         node_i, node_j = edge[0], edge[1]
 
         # negativate
         neighbor_node_i = list(self.G.neighbors(node_i))
-        nodes = sorted(list(self.G.nodes()))
-        while 1:
-            negative = random.choice(nodes)
+
+        negative_sample = []
+        K = self.num_negative
+        while K:
+            negative = random.choice(self.nodes)
             if negative not in neighbor_node_i:
-                break
+                negative_sample.append(negative)
+                K -= 1
+            elif negative in neighbor_node_i:
+                continue
 
         # reduce dict size by change node number to index
-        node2index = dict(zip(nodes, range(len(nodes))))
-        node_i = node2index[node_i]
-        node_j = node2index[node_j]
-        negative = node2index[negative]
+        node_i = self.node2index[node_i]
+        node_j = self.node2index[node_j]
 
-        return node_i, node_j, negative
+        negative_sample = [self.node2index[negative] for negative in negative_sample]
+
+        return node_i, node_j, negative_sample
 
 
 class NodeDataLoader():
-    def __init__(self, args):
+    def __init__(self, args, G, J, q, nodes, node2index, index2edge):
         self.args = args
+        self.G = G
+        self.J = J
+        self.q = q
+        self.nodes = nodes
+        self.node2index = node2index
+        self.index2edge = index2edge
+
     def TrainLoader(self):
-        train_loader = data.DataLoader(GraphTrainDataSet(self.args), batch_size=self.args.batch_size, shuffle=True, num_workers=4,
-                                      pin_memory=True, drop_last=False)
+        train_loader = data.DataLoader(
+            GraphTrainDataSet(self.G, self.J, self.q, self.nodes, self.node2index, self.index2edge,
+                              self.args.num_negative),
+            batch_size=self.args.batch_size, shuffle=True, num_workers=0,
+            pin_memory=True, drop_last=False)
         return train_loader

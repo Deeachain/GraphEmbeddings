@@ -8,6 +8,7 @@ Describe: Write during the internship at Hikvison, Github link: https://github.c
 """
 import os
 import argparse
+import numpy as np
 
 from model import node2vec, deepwalk, line
 from util.dataloader import read_graph
@@ -41,11 +42,13 @@ def parse_args():
                         help='Number of walks per source. Default is 10.')
     parser.add_argument('--window-size', type=int, default=10,
                         help='Context size for optimization. Default is 10.')
-    parser.add_argument('--iter', default=1, type=int,
-                        help='Number of epochs in SGD')
-    parser.add_argument('--batch_size',type=int, default=256,
+    parser.add_argument('--num_negative', type=int, default=10,
+                        help='Number of negativate sample. Default is 10.')
+    parser.add_argument('--iter', default=500, type=int,
+                        help='Number of epochs in SGD, Line Defalut should ')
+    parser.add_argument('--batch_size', type=int, default=256,
                         help='batchsize for line')
-    parser.add_argument('--lr', type=float, default=0.01,
+    parser.add_argument('--lr', type=float, default=0.1,
                         help='learning rate for optimal')
     parser.add_argument('--workers', type=int, default=8,
                         help='Number of parallel workers. Default is 8.')
@@ -69,14 +72,13 @@ def main(args):
     if args.model_name == 'deepwalk':
         nx_G = deepwalk.load_edgelist(args.input, directed=args.directed)
         walks = deepwalk.build_deepwalk_corpus(nx_G, num_paths=args.num_walks,
-                                      path_length=args.walk_length, alpha=0)
+                                               path_length=args.walk_length, alpha=0)
     elif args.model_name == 'line':
         line.main(args)
     elif args.model_name == 'node2vec':
         G = node2vec.Graph(nx_G, args.directed, args.p, args.q)
         G.preprocess_transition_probs()
         walks = G.simulate_walks(args.num_walks, args.walk_length)
-
 
     print('Learning Embeddings...')
     if args.model_name == 'deepwalk' or args.model_name == 'node2vec':
@@ -90,7 +92,6 @@ def main(args):
         embeddings = {}
         for node in nx_G.nodes():
             embeddings[str(node)] = model.wv[str(node)]
-
         args.log_file = args.output_pic + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.log'
         evaluate_embeddings(embeddings=embeddings, label_file=args.input_label, args=args)
 
@@ -99,8 +100,23 @@ def main(args):
         pic_path = args.output_pic + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.png'
         plot_embeddings(embeddings=embeddings, label_file=args.input_label, pic_path=pic_path)
     else:
-        pass
+        embeddings = {}
+        emb_path = args.output_emb + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.emb'
+        with open(emb_path, 'r') as f:
+            lines = f.readlines()
+        for l in lines:
+            node = l.split(' ')[0]
+            emb = l.split(' ')[1:]
+            emb = np.array([float(i) for i in emb])
+            embeddings[node] = emb
 
+        args.log_file = args.output_pic + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.log'
+        evaluate_embeddings(embeddings=embeddings, label_file=args.input_label, args=args)
+
+        if not os.path.exists(args.output_pic):
+            os.makedirs(args.output_pic)
+        pic_path = args.output_pic + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.png'
+        plot_embeddings(embeddings=embeddings, label_file=args.input_label, pic_path=pic_path)
 
 
 if __name__ == "__main__":

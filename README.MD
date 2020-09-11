@@ -27,6 +27,7 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 
 ## Updating
 - [ ] Line
+The visualization of Embeddings study by Line is terrible,I'm fixing....
 ## Reference
 [1] [Deepwalk Source code](https://github.com/phanein/deepwalk)  
 [2] [Line Code]()  
