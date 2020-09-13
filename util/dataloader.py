@@ -10,7 +10,6 @@ import random
 import numpy as np
 import networkx as nx
 from torch.utils import data
-import time
 
 
 def read_graph(args):

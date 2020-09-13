@@ -34,7 +34,7 @@ def parse_args():
                         help='Plot_embeddings picture path')
     parser.add_argument('--checkpoints_path', type=str, default='output/checkpoints/',
                         help='checkpoint path of line')
-    parser.add_argument('--dimensions', type=int, default=128,
+    parser.add_argument('--dimensions', type=int, default=100,
                         help='Number of dimensions. Default is 128.')
     parser.add_argument('--walk-length', type=int, default=80,
                         help='Length of walk per source. Default is 80.')
@@ -42,9 +42,11 @@ def parse_args():
                         help='Number of walks per source. Default is 10.')
     parser.add_argument('--window-size', type=int, default=10,
                         help='Context size for optimization. Default is 10.')
+    parser.add_argument('--order', type=str, default='all',
+                        help='Compute order proximity of line')
     parser.add_argument('--num_negative', type=int, default=5,
                         help='Number of negativate sample. Default is 5.')
-    parser.add_argument('--iter', default=10, type=int,
+    parser.add_argument('--iter', default=500, type=int,
                         help='Number of epochs in SGD, Line Defalut should ')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batchsize for line')
