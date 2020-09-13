@@ -99,8 +99,8 @@ def main(args):
     train_loader = NodeDataLoaderclass.TrainLoader()
     # model
     model = Line(dict_size, embed_dim=args.dimensions, order=args.order, num_negative=args.num_negative)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-8, weight_decay=0, momentum=0)
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
+    # optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-8, weight_decay=0, momentum=0)
     for epoch in range(args.iter):
         total_batches = len(train_loader)
 
