@@ -175,9 +175,17 @@ class GraphTrainDataSet(data.Dataset):
         node_i = self.node2index[node_i]
         node_j = self.node2index[node_j]
 
-        negative_sample = [self.node2index[negative] for negative in negative_sample]
+        i_list = []
+        j_list = []
+        i_list.append(node_i)
+        j_list.append(node_j)
 
-        return node_i, node_j, negative_sample
+        for neg in negative_sample:
+            neg = self.node2index[neg]
+            i_list.append(node_i)
+            j_list.append(neg)
+
+        return i_list, j_list
 
 
 class NodeDataLoader():
@@ -195,5 +203,5 @@ class NodeDataLoader():
             GraphTrainDataSet(self.G, self.J, self.q, self.nodes, self.node2index, self.index2edge,
                               self.args.num_negative),
             batch_size=self.args.batch_size, shuffle=True, num_workers=0,
-            pin_memory=True, drop_last=False)
+            pin_memory=False, drop_last=False)
         return train_loader
