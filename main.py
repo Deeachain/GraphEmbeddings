@@ -34,23 +34,23 @@ def parse_args():
                         help='Plot_embeddings picture path')
     parser.add_argument('--checkpoints_path', type=str, default='output/checkpoints/',
                         help='checkpoint path of line')
-    parser.add_argument('--dimensions', type=int, default=100,
+    parser.add_argument('--dimensions', type=int, default=128,
                         help='Number of dimensions. Default is 128.')
-    parser.add_argument('--walk-length', type=int, default=80,
-                        help='Length of walk per source. Default is 80.')
-    parser.add_argument('--num-walks', type=int, default=10,
-                        help='Number of walks per source. Default is 10.')
+    parser.add_argument('--walk-length', type=int, default=20,
+                        help='Length of walk per source. Default is 20.')
+    parser.add_argument('--num-walks', type=int, default=50,
+                        help='Number of walks per source. Default is 50.')
     parser.add_argument('--window-size', type=int, default=10,
                         help='Context size for optimization. Default is 10.')
-    parser.add_argument('--order', type=str, default='all',
+    parser.add_argument('--order', type=str, default='second',
                         help='Compute order proximity of line')
     parser.add_argument('--num_negative', type=int, default=5,
                         help='Number of negativate sample. Default is 5.')
-    parser.add_argument('--iter', default=500, type=int,
+    parser.add_argument('--iter', default=90, type=int,
                         help='Number of epochs in SGD, Line Defalut should ')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batchsize for line')
-    parser.add_argument('--lr', type=float, default=0.1,
+    parser.add_argument('--lr', type=float, default=0.005,
                         help='learning rate for optimal')
     parser.add_argument('--workers', type=int, default=8,
                         help='Number of parallel workers. Default is 8.')
@@ -119,7 +119,6 @@ def main(args):
             os.makedirs(args.output_pic)
         pic_path = args.output_pic + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.png'
         plot_embeddings(embeddings=embeddings, label_file=args.input_label, pic_path=pic_path)
-
 
 if __name__ == "__main__":
     args = parse_args()

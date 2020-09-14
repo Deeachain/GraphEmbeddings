@@ -1,2 +1,0 @@
-Namespace(dimensions=128, directed=False, input='graph/wiki/wiki_edgelist.txt', input_label='graph/wiki/wiki_labels.txt', iter=1, log_file='output/visualization/deepwalk_wiki_edgelist.log', model_name='deepwalk', num_walks=10, output_emb='output/embedding/', output_pic='output/visualization/', p=0.25, q=4, walk_length=80, weighted=False, window_size=10, workers=8)
-{'micro': 0.7130977130977131, 'macro': 0.6608906518389109, 'weighted': 0.7084684947748452, 'acc': 0.7130977130977131}

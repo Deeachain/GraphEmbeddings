@@ -96,30 +96,6 @@ def get_alias_edge(G):
     return alias_setup(normalized_probs), index2edge
 
 
-def preprocess_transition_probs(G, is_directed, ):
-    '''
-    Preprocessing of transition probabilities for guiding the random walks.
-    '''
-    alias_nodes = {}
-    for node in G.nodes():
-        unnormalized_probs = [G[node][nbr]['weight'] for nbr in sorted(G.neighbors(node))]
-        norm_const = sum(unnormalized_probs)
-        normalized_probs = [float(u_prob) / norm_const for u_prob in unnormalized_probs]
-        alias_nodes[node] = alias_setup(normalized_probs)
-
-    alias_edges = {}
-
-    if is_directed:
-        for edge in G.edges():
-            alias_edges[edge] = get_alias_node(edge[0])
-    else:
-        for edge in G.edges():
-            alias_edges[edge] = get_alias_node(edge[0])
-            alias_edges[(edge[1], edge[0])] = get_alias_node(edge[1])
-
-    return alias_nodes, alias_edges
-
-
 def alias_draw(J, q):
     '''
     Draw sample from a non-uniform discrete distribution using alias sampling.
@@ -138,34 +114,36 @@ class GraphTrainDataSet(data.Dataset):
         Args:
     """
 
-    def __init__(self, G, J, q, nodes, node2index, index2edge, num_negativate):
-        print('Graph Creating...')
+    def __init__(self, G, J_edge, q_edge, J_node, q_node, nodes, node2index, index2edge, index2node, num_negativate):
         self.G = G
-        self.J = J
-        self.q = q
+        self.J_edge = J_edge
+        self.q_edge = q_edge
+        self.J_node = J_node
+        self.q_node = q_node
         self.nodes = nodes
         self.node2index = node2index
         self.index2edge = index2edge
+        self.index2node = index2node
         self.num_negative = num_negativate
 
     def __len__(self):
         return len(self.G.edges())
 
     def __getitem__(self, index):
-        edge_index_in_alias = alias_draw(J=self.J, q=self.q)
+        edge_index_in_alias = alias_draw(J=self.J_edge, q=self.q_edge)
         edge = self.index2edge[edge_index_in_alias]
 
         # postive
         node_i, node_j = edge[0], edge[1]
-
         # negativate
         neighbor_node_i = list(self.G.neighbors(node_i))
-
         negative_sample = []
         K = self.num_negative
         while K:
-            negative = random.choice(self.nodes)
-            if negative not in neighbor_node_i:
+            # negative = random.choice(self.nodes)
+            negative_index_in_alias = alias_draw(self.J_node, self.q_node)
+            negative = self.index2node[negative_index_in_alias]
+            if negative not in neighbor_node_i and negative not in negative_sample:
                 negative_sample.append(negative)
                 K -= 1
             elif negative in neighbor_node_i:
@@ -179,29 +157,30 @@ class GraphTrainDataSet(data.Dataset):
         j_list = []
         i_list.append(node_i)
         j_list.append(node_j)
-
         for neg in negative_sample:
             neg = self.node2index[neg]
             i_list.append(node_i)
             j_list.append(neg)
-
         return i_list, j_list
 
 
 class NodeDataLoader():
-    def __init__(self, args, G, J, q, nodes, node2index, index2edge):
+    def __init__(self, args, G, J_edge, q_edge, J_node, q_node, nodes, node2index, index2node, index2edge):
         self.args = args
         self.G = G
-        self.J = J
-        self.q = q
+        self.J_edge = J_edge
+        self.q_edge = q_edge
+        self.J_node = J_node
+        self.q_node = q_node
         self.nodes = nodes
         self.node2index = node2index
         self.index2edge = index2edge
+        self.index2node = index2node
 
     def TrainLoader(self):
         train_loader = data.DataLoader(
-            GraphTrainDataSet(self.G, self.J, self.q, self.nodes, self.node2index, self.index2edge,
-                              self.args.num_negative),
+            GraphTrainDataSet(self.G, self.J_edge, self.q_edge, self.J_node, self.q_node, self.nodes, self.node2index,
+                              self.index2edge, self.index2node, self.args.num_negative),
             batch_size=self.args.batch_size, shuffle=True, num_workers=0,
             pin_memory=False, drop_last=False)
         return train_loader

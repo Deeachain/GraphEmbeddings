@@ -4,7 +4,7 @@
 - [x] Node2Vec
 ## How to Run
 ### 1.Install Requirements
-Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip install requirements.txt`
+Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip install -r requirements.txt`
 ### 2.Run
 `python main.py`
 
@@ -16,6 +16,13 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 |  Class   |  7   |   -    |  17   |
 
 ## Visualization
+<table>
+    <tr>
+        <td ><center><img src="https://github.com/Deeachain/GraphEmbeddings/blob/master/output/visualization/deepwalk_cora_edges.png" width="450"><div align = "center">Deepalk_Cora</div></td>
+        <td ><center><img src="https://github.com/Deeachain/GraphEmbeddings/blob/master/output/visualization/line_cora_edges.png" width="450”><div align = "center">Line_Cora</div></center></td>
+        <td ><center><img src="https://github.com/Deeachain/GraphEmbeddings/blob/master/output/visualization/node2vec_cora_edges.png" width="450"><div align="center">Node2Vec_Cora</div></center></td>
+    </tr>
+</table>
 
 |                      |  cora  |  wiki  |
 | :------------------: | :----: | :----: |

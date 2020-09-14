@@ -13,10 +13,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tqdm import tqdm
 
-from util.dataloader import read_graph, NodeDataLoader, get_alias_edge
+from util.dataloader import read_graph, NodeDataLoader, get_alias_edge, get_alias_node
 
 class Line(nn.Module):
-    def __init__(self, dict_size, embed_dim=128, order="first", num_negative=5):
+    def __init__(self, dict_size, embed_dim=128, order="first"):
         super(Line, self).__init__()
 
         assert order in ["first", "second", "all"], print("Order should either be [first, second, all]")
@@ -30,45 +30,46 @@ class Line(nn.Module):
         self.second_embeddings.weight.data.uniform_(-0.5, 0.5)
         self.context_embeddings.weight.data.uniform_(-0.5, 0.5)
 
-    def forward(self, nodeindex, v_i, v_j, device):
+    def forward(self, nodeindex, v_i, v_j):
         # init embeddings
         if self.order == 'first':
-            u_i = self.embeddings(torch.LongTensor(v_i)).to(device)
-            u_j = self.embeddings(torch.LongTensor(v_j)).to(device)
+            u_i = self.embeddings(torch.LongTensor(v_i))
+            u_j = self.embeddings(torch.LongTensor(v_j))
             return u_i, u_j
         elif self.order == 'second':
-            u_i = self.embeddings(torch.LongTensor(v_i)).to(device)
-            u_j_context = self.context_embeddings(torch.LongTensor(v_j)).to(device)
+            u_i = self.embeddings(torch.LongTensor(v_i))
+            u_j_context = self.context_embeddings(torch.LongTensor(v_j))
             return u_i, u_j_context
         elif self.order == 'all':
-            u_i1 = self.embeddings(torch.LongTensor(v_i)).to(device)
-            u_j1 = self.embeddings(torch.LongTensor(v_j)).to(device)
-            u_i2 = self.second_embeddings(torch.LongTensor(v_i)).to(device)
-            u_j2 = self.context_embeddings(torch.LongTensor(v_j)).to(device)
+            u_i1 = self.embeddings(torch.LongTensor(v_i))
+            u_j1 = self.embeddings(torch.LongTensor(v_j))
+            u_i2 = self.second_embeddings(torch.LongTensor(v_i))
+            u_j2 = self.context_embeddings(torch.LongTensor(v_j))
             return u_i1, u_j1, u_i2, u_j2
 
 
 
 def main(args):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # load data
     G = read_graph(args)
     nodes = sorted(list(G.nodes()))
-    J_q, index2edge = get_alias_edge(G)  # alias table:(J,q)
-    J, q = J_q[0], J_q[1]
+    J_q_edge, index2edge = get_alias_edge(G)  # alias edge table:(J,q)
+    J_edge, q_edge = J_q_edge[0], J_q_edge[1]
+    J_q_node, index2node = get_alias_node(G)  # alias node table:(J,q)
+    J_node, q_node = J_q_node[0], J_q_node[1]
     node2index = dict(zip(nodes, range(len(nodes))))
     dict_size = len(nodes)
     node_index = torch.LongTensor(range(0, dict_size))
 
-    NodeDataLoaderclass = NodeDataLoader(args=args, G=G, J=J, q=q, nodes=nodes,
-                                         node2index=node2index, index2edge=index2edge)
+    NodeDataLoaderclass = NodeDataLoader(args=args, G=G, J_edge=J_edge, q_edge=q_edge, J_node=J_node, q_node=q_node, nodes=nodes,
+                                         node2index=node2index, index2node=index2node, index2edge=index2edge)
     train_loader = NodeDataLoaderclass.TrainLoader()
     # model
-    model = Line(dict_size, embed_dim=args.dimensions, order=args.order, num_negative=args.num_negative)
+    model = Line(dict_size, embed_dim=args.dimensions, order=args.order)
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     # optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, lambd=1e-4, alpha=0.75, t0=1e6)
-    # optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-8, weight_decay=0, momentum=0)
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-8, weight_decay=0, momentum=0)
     for epoch in range(args.iter):
         total_batches = len(train_loader)
 
@@ -76,13 +77,13 @@ def main(args):
                     desc='Epoch {}/{}'.format(epoch, args.iter))
         loss_record = []
         for iteration, batch in pbar:
-            v_i = batch[0]
-            v_j = batch[1]
+            v_i = batch[0]  # v_i=[pos_i,neg_i1,neg_i2,neg_i3,neg_i4,neg_i5]
+            v_j = batch[1]  # v_i=[pos_j,neg_j1,neg_j2,neg_j3,neg_j4,neg_j5]
 
             loss = 0
-            if args.order == 'all':
-                for i in range(len(v_i)):
-                    u_i1, u_j1, u_i2, u_j2 = model(node_index, v_i[i], v_j[i], device)
+            for i in range(len(v_i)):
+                if args.order == 'all':
+                    u_i1, u_j1, u_i2, u_j2 = model(node_index, v_i[i], v_j[i])
                     temp1 = torch.sum(torch.mul(u_i1, u_j1), dim=1)
                     temp2 = torch.sum(torch.mul(u_i2, u_j2), dim=1)
                     if i == 0:
@@ -92,9 +93,8 @@ def main(args):
                         loss1 = -torch.mean(F.logsigmoid(-temp1), dim=0)
                         loss2 = -torch.mean(F.logsigmoid(-temp2), dim=0)
                     loss += (loss1 + loss2)
-            else:
-                for i in range(len(v_i)):
-                    u_i, u_j = model(node_index, v_i[i], v_j[i], device)
+                else:
+                    u_i, u_j = model(node_index, v_i[i], v_j[i])
                     temp = torch.sum(torch.mul(u_i, u_j), dim=1)
                     if i == 0:
                         temp = temp
@@ -112,8 +112,11 @@ def main(args):
 
     if args.order == 'first':
         embeddings = model.embeddings.weight.data.numpy()
-    elif args.order == 'second':
-        embeddings = torch.mul(model.embeddings.weight.data, model.second_embeddings.weight.data).numpy()
+    elif args.order == 'second':  # had tried single embeddings、concate/add embeddings with context_embeddings
+        # embeddings = model.embeddings.weight.data.numpy()
+        # embeddings = model.context_embeddings.weight.data.numpy()
+        embeddings = torch.mul(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
+        # embeddings = torch.add(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
     elif args.order == 'all':
         first_emb = model.embeddings.weight.data.numpy()
         second_emb = model.second_embeddings.weight.data.numpy()

@@ -1,0 +1,2 @@
+Namespace(batch_size=256, checkpoints_path='output/checkpoints/', dimensions=128, directed=False, input='graph/dblp/dblp_adjedges.adjlist', input_label='graph/dblp/dblp_preprogress_labels.txt', iter=5, log_file='output/visualization/node2vec_dblp_adjedges.log', lr=0.005, model_name='node2vec', num_negative=5, num_walks=50, order='second', output_emb='output/embedding/', output_pic='output/visualization/', p=0.25, q=0.25, walk_length=20, weighted=False, window_size=10, workers=8)
+{'micro': 0.8386459802538787, 'macro': 0.7912699818148665, 'acc': 0.8386459802538787}

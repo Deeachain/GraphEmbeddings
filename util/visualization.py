@@ -47,7 +47,7 @@ def plot_embeddings(embeddings, label_file, pic_path):
 
     for c, idx in color_idx.items():
         plt.scatter(node_pos[idx, 0], node_pos[idx, 1], label=c)
-        
+
     plt.legend()
     plt.savefig(pic_path)
     plt.show()

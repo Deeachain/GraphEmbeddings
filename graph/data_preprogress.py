@@ -13,11 +13,14 @@ def data_preprogress(data_path, save_path):
         for line in lines:
             edge = []
             start = 0
-            for i, v in enumerate(line.strip().split()):
-                if i == 0:
-                    start = v
-                    continue
-                edge.append((start, v))
+            if len(line.strip().split()) > 1:
+                for i, v in enumerate(line.strip().split()):
+                    if i == 0:
+                        start = v
+                        continue
+                    edge.append((start, v))
+            else:
+                continue
             edges.extend(edge)
     with open(save_path, 'w') as f:
         for line in edges:
@@ -27,6 +30,19 @@ def data_preprogress(data_path, save_path):
 
 
 if __name__ == '__main__':
-    data_path = 'karate/karate.adjlist'
-    save_path = 'karate/karate_preprogress.adjlist'
+    data_path = 'dblp/origin/dblp_adjedges.txt'
+    save_path = 'dblp/progressed/dblp_adjedges.adjlist'
     data_preprogress(data_path, save_path)
+
+
+    # remove no edge node label
+    # with open('dblp/dblp_labels.txt', 'r') as f1:
+    #     lines1 = f1.readlines()
+    # with open('dblp/dblp_adjedges.txt', 'r') as f2:
+    #     lines2 = f2.readlines()
+    #     edges = []
+    #     for i, line in enumerate(lines2):
+    #         if len(line.strip().split()) > 1:
+    #             with open('dblp/dblp_preprogress_labels.txt', 'a+') as f3:
+    #                     f3.write('{}\n'.format(lines1[i].strip()))
+

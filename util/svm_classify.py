@@ -25,7 +25,7 @@ class Classifier(object):
 
     def evaluate(self, X, Y):
         Y_ = self.predict(X)
-        averages = ["micro", "macro", "weighted"]
+        averages = ["micro", "macro"]
         results = {}
         for average in averages:
             results[average] = f1_score(Y, Y_, average=average)

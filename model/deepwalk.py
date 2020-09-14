@@ -115,7 +115,7 @@ class Graph(defaultdict):
             cur = path[-1]
             if len(G[cur]) > 0:
                 if rand.random() >= alpha:
-                    path.append(rand.choice(G[cur]))
+                    path.append(rand.choice(G[cur]))  # G[cur]为顶点cur的邻居节点集合，使用210行的load_edgelist生成图的方式
                 else:
                     path.append(path[0])
             else:
