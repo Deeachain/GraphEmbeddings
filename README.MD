@@ -10,7 +10,7 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 
 ### 3.Datasets
 | Datasets     | cora | karate | wiki  |
-| :------:     | :--: | :----: | :---: |
+| :------------------:     | :--: | :----: | :---: |
 |    V         | 2708 |   34   | 2405  |
 |    E         | 5429 |  156   | 17981 |
 |  Class       |  7   |   -    |  17   |
