@@ -10,7 +10,7 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 
 ### 3.Datasets
 | Datasets     | cora | karate | wiki  |
-| :------------------:     | :--: | :----: | :---: |
+| :------:     | :--: | :----: | :---: |
 |    V         | 2708 |   34   | 2405  |
 |    E         | 5429 |  156   | 17981 |
 |  Class       |  7   |   -    |  17   |
@@ -28,6 +28,20 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
         <td ><center><img src="https://github.com/Deeachain/GraphEmbeddings/blob/master/output/visualization/line_cora_edges.png"><div align = "center">Line_Cora</div></center></td>
         <td ><center><img src="https://github.com/Deeachain/GraphEmbeddings/blob/master/output/visualization/node2vec_cora_edges.png"><div align="center">Node2Vec_Cora</div></center></td>
     </tr>
+</table>
+<table>
+    <thead>
+        <tr>
+            <th>名称</th>
+            <th>值</th>
+            <th>备注</th>
+        </tr>
+    </thead>
+    <tbody>
+            <th>cora</th>
+            <th>kekek</th>
+            <th>fuh</th>
+    </tbody>
 </table>
 
 
