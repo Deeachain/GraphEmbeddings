@@ -15,12 +15,6 @@ from tqdm import tqdm
 
 from util.dataloader import read_graph, NodeDataLoader, get_alias_edge
 
-def Joint_probability(v_i_embedding, v_j_embedding):
-    temp = torch.sum(torch.mul(v_i_embedding, v_j_embedding), dim=1)
-    loss = F.logsigmoid(temp)
-    return -torch.mean(loss, dim=0)
-
-
 class Line(nn.Module):
     def __init__(self, dict_size, embed_dim=128, order="first", num_negative=5):
         super(Line, self).__init__()
@@ -55,47 +49,6 @@ class Line(nn.Module):
 
 
 
-    # def forward(self, nodeindex, v_i, v_j, negsamples, device):
-    #     # input
-    #     v_i = torch.LongTensor(v_i)
-    #     v_j = torch.LongTensor(v_j)
-    #     negsamples = [torch.LongTensor(negative) for negative in negsamples]
-    #     # onehot
-    #     v_i = torch.Tensor(np.eye(self.dict_size)[v_i]).to(device)
-    #     v_j = torch.Tensor(np.eye(self.dict_size)[v_j]).to(device)
-    #     negative_sample_onehot = [torch.Tensor(np.eye(self.dict_size)[negative]).to(device) for negative in negsamples]
-    #     # init embeddings
-    #     first_embeddings = self.first_embeddings(torch.LongTensor(nodeindex)).to(device)
-    #     second_embeddings = self.second_embeddings(torch.LongTensor(nodeindex)).to(device)
-    #     context_embeddings = self.context_embeddings(torch.LongTensor(nodeindex)).to(device)
-    #
-    #     if self.order == 'first':
-    #         v_i_embedding = torch.mm(v_i, first_embeddings)
-    #         v_j_embedding = torch.mm(v_j, first_embeddings)
-    #         negative_sample_embedding = [torch.mm(negative, first_embeddings) for negative in negative_sample_onehot]
-    #
-    #         loss = Joint_probability(v_i_embedding, v_j_embedding, negative_sample_embedding)
-    #     elif self.order == 'second':
-    #         v_i_embedding = torch.mm(v_i, second_embeddings)
-    #         v_j_embedding = torch.mm(v_j, context_embeddings)
-    #         negative_sample_embedding = [torch.mm(negative, context_embeddings) for negative in negative_sample_onehot]
-    #
-    #         loss = Joint_probability(v_i_embedding, v_j_embedding, negative_sample_embedding)
-    #     elif self.order == 'all':
-    #         v_i_embedding1 = torch.mm(v_i, first_embeddings)
-    #         v_j_embedding1 = torch.mm(v_j, first_embeddings)
-    #         negative_sample_embedding1 = [torch.mm(negative, first_embeddings) for negative in negative_sample_onehot]
-    #
-    #         v_i_embedding2 = torch.mm(v_i, second_embeddings)
-    #         v_j_embedding2 = torch.mm(v_j, context_embeddings)
-    #         negative_sample_embedding2 = [torch.mm(negative, context_embeddings) for negative in negative_sample_onehot]
-    #
-    #         loss1 = Joint_probability(v_i_embedding1, v_j_embedding1, negative_sample_embedding1)
-    #         loss2 = Joint_probability(v_i_embedding2, v_j_embedding2, negative_sample_embedding2)
-    #         loss = loss1 + loss2
-    #     return -torch.mean(loss)
-
-
 def main(args):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     # load data
@@ -113,7 +66,8 @@ def main(args):
     # model
     model = Line(dict_size, embed_dim=args.dimensions, order=args.order, num_negative=args.num_negative)
     # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
-    optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, lambd=1e-4, alpha=0.75, t0=1e6)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    # optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, lambd=1e-4, alpha=0.75, t0=1e6)
     # optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-8, weight_decay=0, momentum=0)
     for epoch in range(args.iter):
         total_batches = len(train_loader)
@@ -132,13 +86,12 @@ def main(args):
                     temp1 = torch.sum(torch.mul(u_i1, u_j1), dim=1)
                     temp2 = torch.sum(torch.mul(u_i2, u_j2), dim=1)
                     if i == 0:
-                        temp1 = temp1
-                        temp2 = temp2
+                        loss1 = -torch.mean(F.logsigmoid(temp1), dim=0)
+                        loss2 = -torch.mean(F.logsigmoid(temp2), dim=0)
                     else:
-                        temp1 = -temp1
-                        temp2 = -temp2
-                    temp = temp1 + temp2
-                    loss += -torch.mean(F.logsigmoid(temp), dim=0)
+                        loss1 = -torch.mean(F.logsigmoid(-temp1), dim=0)
+                        loss2 = -torch.mean(F.logsigmoid(-temp2), dim=0)
+                    loss += (loss1 + loss2)
             else:
                 for i in range(len(v_i)):
                     u_i, u_j = model(node_index, v_i[i], v_j[i], device)
@@ -160,7 +113,7 @@ def main(args):
     if args.order == 'first':
         embeddings = model.embeddings.weight.data.numpy()
     elif args.order == 'second':
-        embeddings = model.embeddings.weight.data.numpy()
+        embeddings = torch.mul(model.embeddings.weight.data, model.second_embeddings.weight.data).numpy()
     elif args.order == 'all':
         first_emb = model.embeddings.weight.data.numpy()
         second_emb = model.second_embeddings.weight.data.numpy()
@@ -171,7 +124,7 @@ def main(args):
     emb_path = args.output_emb + args.model_name + '_' + args.input.split('/')[-1].split('.')[0] + '.emb'
 
     index2node = dict(zip(range(len(nodes)), nodes))
-    print(embeddings.shape)
+
     np.savetxt(emb_path, embeddings, fmt='%1.8f')
 
     with open(emb_path, 'r') as f1:
