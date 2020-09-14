@@ -9,12 +9,18 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 `python main.py`
 
 ### 3.Datasets
-| Datasets | cora | karate | wiki  |
-| :------: | :--: | :----: | :---: |
-|    V     | 2708 |   34   | 2405  |
-|    E     | 5429 |  156   | 17981 |
-|  Class   |  7   |   -    |  17   |
+| Datasets     | cora | karate | wiki  |
+| :------:     | :--: | :----: | :---: |
+|    V         | 2708 |   34   | 2405  |
+|    E         | 5429 |  156   | 17981 |
+|  Class       |  7   |   -    |  17   |
 
+### 4.NodeClassify Task
+|                      |  cora  |  wiki  |
+| :------------------: | :----: | :----: |
+| Deepwalk（f1-micro） | 0.8524 | 0.7131 |
+|   Line（f1-micro）   |   -    |   -    |
+| Node2vec（f1-micro） | 0.8505 | 0.7027 |
 ## Visualization
 <table>
     <tr>
@@ -24,11 +30,6 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
     </tr>
 </table>
 
-|                      |  cora  |  wiki  |
-| :------------------: | :----: | :----: |
-| Deepwalk（f1-micro） | 0.8524 | 0.7131 |
-|   Line（f1-micro）   |   -    |   -    |
-| Node2vec（f1-micro） | 0.8505 | 0.7027 |
 
 
 
