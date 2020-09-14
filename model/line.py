@@ -115,8 +115,7 @@ def main(args):
     elif args.order == 'second':  # had tried single embeddings、concate/add embeddings with context_embeddings
         # embeddings = model.embeddings.weight.data.numpy()
         # embeddings = model.context_embeddings.weight.data.numpy()
-        embeddings = torch.mul(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
-        # embeddings = torch.add(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
+        embeddings = torch.add(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
     elif args.order == 'all':
         first_emb = model.embeddings.weight.data.numpy()
         second_emb = model.second_embeddings.weight.data.numpy()
