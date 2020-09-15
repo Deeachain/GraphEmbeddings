@@ -21,7 +21,7 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 |                      |  cora  |  wiki  |
 | :------------------: | :----: | :----: |
 | Deepwalk（f1-micro） | 0.8524 | 0.7131 |
-|   Line（f1-micro）   |   -    |   -    |
+|   Line（f1-micro）   | 0.6218 | 0.6262 |
 | Node2vec（f1-micro） | 0.8505 | 0.7027 |
 
 ## Visualization
@@ -34,7 +34,7 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 </table>
 
 ## Updating
-- [ ] Line
+- [ ] Line  
 The visualization of Embeddings study by Line is terrible,I'm fixing....
 
 ## Reference
