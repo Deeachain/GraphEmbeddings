@@ -1,2 +1,0 @@
-Namespace(batch_size=256, checkpoints_path='output/checkpoints/', dimensions=100, directed=True, input='graph/cora/progressed/cora_edges.txt', input_label='graph/cora/progressed/cora_labels.txt', iter=200, log_file='output/visualization/line_cora_edges.log', lr=0.005, model_name='line', num_negative=5, num_walks=50, order='all', output_emb='output/embedding/', output_pic='output/visualization/', p=0.25, q=0.25, walk_length=20, weighted=False, window_size=10, workers=8)
-{'micro': 0.544280442804428, 'macro': 0.5182814499027438, 'acc': 0.544280442804428}
