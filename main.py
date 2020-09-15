@@ -24,9 +24,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run deepwalk、line、node2vec.")
     parser.add_argument('--model_name', type=str, default='line',
                         help='Model choice in [deepwalk、line、node2vec]')
-    parser.add_argument('--input', type=str, default='graph/cora/progressed/cora_edges.txt',
+    # parser.add_argument('--input', type=str, default='graph/cora/progressed/cora_edges.txt',
+    #                     help='Input graph path')
+    # parser.add_argument('--input_label', type=str, default='graph/cora/progressed/cora_labels.txt',
+    #                     help='Input graph path')
+    parser.add_argument('--input', type=str, default='graph/dblp/progressed/dblp_adjedges.adjlist',
                         help='Input graph path')
-    parser.add_argument('--input_label', type=str, default='graph/cora/progressed/cora_labels.txt',
+    parser.add_argument('--input_label', type=str, default='graph/dblp/progressed/dblp_preprogress_labels.txt',
                         help='Input graph path')
     parser.add_argument('--output_emb', type=str, default='output/embedding/',
                         help='Embeddings path')
@@ -46,7 +50,7 @@ def parse_args():
                         help='Compute order proximity of line')
     parser.add_argument('--num_negative', type=int, default=5,
                         help='Number of negativate sample. Default is 5.')
-    parser.add_argument('--iter', default=90, type=int,
+    parser.add_argument('--iter', default=150, type=int,
                         help='Number of epochs in SGD, Line Defalut should ')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batchsize for line')
@@ -69,7 +73,6 @@ def main(args):
     '''
     Pipeline for representational learning for all nodes in a graph.
     '''
-    nx_G = read_graph(args)
 
     if args.model_name == 'deepwalk':
         nx_G = deepwalk.load_edgelist(args.input, directed=args.directed)
@@ -78,6 +81,7 @@ def main(args):
     elif args.model_name == 'line':
         line.main(args)
     elif args.model_name == 'node2vec':
+        nx_G = read_graph(args)
         G = node2vec.Graph(nx_G, args.directed, args.p, args.q)
         G.preprocess_transition_probs()
         walks = G.simulate_walks(args.num_walks, args.walk_length)

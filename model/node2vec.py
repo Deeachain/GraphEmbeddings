@@ -32,9 +32,9 @@ class Graph():
             cur = walk[-1]
             cur_nbrs = sorted(G.neighbors(cur))
             if len(cur_nbrs) > 0:
-                if len(walk) == 1:
+                if len(walk) == 1:  # 路径中只有一个顶点时，从邻居顶点中根据边权生成概率,使用alias采样下一个顶点,不直接使用第二种情况采样的原因是为了构成采样策略
                     walk.append(cur_nbrs[alias_draw(alias_nodes[cur][0], alias_nodes[cur][1])])
-                else:
+                else:  # 路径中大于一个顶点时，根据邻居顶点p和q的采样策略生成概率,使用alias采样下一个顶点
                     prev = walk[-2]
                     next = cur_nbrs[alias_draw(alias_edges[(prev, cur)][0],
                                                alias_edges[(prev, cur)][1])]
@@ -96,10 +96,10 @@ class Graph():
         alias_edges = {}
 
         if is_directed:
-            for edge in G.edges():
+            for edge in tqdm(iterable=G.edges(), desc='get_alias_edge'):
                 alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
         else:
-            for edge in G.edges():
+            for edge in tqdm(iterable=G.edges(), desc='get_alias_edge'):
                 alias_edges[edge] = self.get_alias_edge(edge[0], edge[1])
                 alias_edges[(edge[1], edge[0])] = self.get_alias_edge(edge[1], edge[0])
 

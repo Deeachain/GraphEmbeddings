@@ -34,15 +34,3 @@ if __name__ == '__main__':
     save_path = 'dblp/progressed/dblp_adjedges.adjlist'
     data_preprogress(data_path, save_path)
 
-
-    # remove no edge node label
-    # with open('dblp/dblp_labels.txt', 'r') as f1:
-    #     lines1 = f1.readlines()
-    # with open('dblp/dblp_adjedges.txt', 'r') as f2:
-    #     lines2 = f2.readlines()
-    #     edges = []
-    #     for i, line in enumerate(lines2):
-    #         if len(line.strip().split()) > 1:
-    #             with open('dblp/dblp_preprogress_labels.txt', 'a+') as f3:
-    #                     f3.write('{}\n'.format(lines1[i].strip()))
-

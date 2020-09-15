@@ -130,10 +130,9 @@ class GraphTrainDataSet(data.Dataset):
         return len(self.G.edges())
 
     def __getitem__(self, index):
+        # postive
         edge_index_in_alias = alias_draw(J=self.J_edge, q=self.q_edge)
         edge = self.index2edge[edge_index_in_alias]
-
-        # postive
         node_i, node_j = edge[0], edge[1]
         # negativate
         neighbor_node_i = list(self.G.neighbors(node_i))
@@ -148,7 +147,6 @@ class GraphTrainDataSet(data.Dataset):
                 K -= 1
             elif negative in neighbor_node_i:
                 continue
-
         # reduce dict size by change node number to index
         node_i = self.node2index[node_i]
         node_j = self.node2index[node_j]

@@ -24,10 +24,8 @@ class Line(nn.Module):
         self.embed_dim = embed_dim
         self.order = order
         self.embeddings = nn.Embedding(dict_size, embed_dim)
-        self.second_embeddings = nn.Embedding(dict_size, embed_dim)
         self.context_embeddings = nn.Embedding(dict_size, embed_dim)
         self.embeddings.weight.data.uniform_(-0.5, 0.5)
-        self.second_embeddings.weight.data.uniform_(-0.5, 0.5)
         self.context_embeddings.weight.data.uniform_(-0.5, 0.5)
 
     def forward(self, nodeindex, v_i, v_j):
@@ -41,11 +39,10 @@ class Line(nn.Module):
             u_j_context = self.context_embeddings(torch.LongTensor(v_j))
             return u_i, u_j_context
         elif self.order == 'all':
-            u_i1 = self.embeddings(torch.LongTensor(v_i))
+            u_i = self.embeddings(torch.LongTensor(v_i))
             u_j1 = self.embeddings(torch.LongTensor(v_j))
-            u_i2 = self.second_embeddings(torch.LongTensor(v_i))
             u_j2 = self.context_embeddings(torch.LongTensor(v_j))
-            return u_i1, u_j1, u_i2, u_j2
+            return u_i, u_j1, u_j2
 
 
 
@@ -66,9 +63,6 @@ def main(args):
     train_loader = NodeDataLoaderclass.TrainLoader()
     # model
     model = Line(dict_size, embed_dim=args.dimensions, order=args.order)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
-    # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    # optimizer = torch.optim.ASGD(model.parameters(), lr=args.lr, lambd=1e-4, alpha=0.75, t0=1e6)
     optimizer = torch.optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-8, weight_decay=0, momentum=0)
     for epoch in range(args.iter):
         total_batches = len(train_loader)
@@ -83,22 +77,22 @@ def main(args):
             loss = 0
             for i in range(len(v_i)):
                 if args.order == 'all':
-                    u_i1, u_j1, u_i2, u_j2 = model(node_index, v_i[i], v_j[i])
-                    temp1 = torch.sum(torch.mul(u_i1, u_j1), dim=1)
-                    temp2 = torch.sum(torch.mul(u_i2, u_j2), dim=1)
-                    if i == 0:
+                    u_i, u_j1, u_j2 = model(node_index, v_i[i], v_j[i])
+                    temp1 = torch.sum(torch.mul(u_i, u_j1), dim=1)
+                    temp2 = torch.sum(torch.mul(u_i, u_j2), dim=1)
+                    if i == 0:  # postive
                         loss1 = -torch.mean(F.logsigmoid(temp1), dim=0)
                         loss2 = -torch.mean(F.logsigmoid(temp2), dim=0)
-                    else:
+                    else:  # negative
                         loss1 = -torch.mean(F.logsigmoid(-temp1), dim=0)
                         loss2 = -torch.mean(F.logsigmoid(-temp2), dim=0)
                     loss += (loss1 + loss2)
                 else:
                     u_i, u_j = model(node_index, v_i[i], v_j[i])
                     temp = torch.sum(torch.mul(u_i, u_j), dim=1)
-                    if i == 0:
+                    if i == 0:  # postive
                         temp = temp
-                    else:
+                    else:  # negative
                         temp = -temp
                     loss += -torch.mean(F.logsigmoid(temp), dim=0)
 
@@ -112,13 +106,11 @@ def main(args):
 
     if args.order == 'first':
         embeddings = model.embeddings.weight.data.numpy()
-    elif args.order == 'second':  # had tried single embeddings、concate/add embeddings with context_embeddings
-        # embeddings = model.embeddings.weight.data.numpy()
-        # embeddings = model.context_embeddings.weight.data.numpy()
+    elif args.order == 'second':
         embeddings = torch.add(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
     elif args.order == 'all':
         first_emb = model.embeddings.weight.data.numpy()
-        second_emb = model.second_embeddings.weight.data.numpy()
+        second_emb = torch.add(model.embeddings.weight.data, model.context_embeddings.weight.data).numpy()
         embeddings = np.concatenate((first_emb, second_emb), axis=1)
 
     if not os.path.exists(args.output_emb):

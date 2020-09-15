@@ -2,9 +2,11 @@
 ## Support
 - [x] Deepwalk
 - [x] Node2Vec
+
 ## How to Run
 ### 1.Install Requirements
 Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip install -r requirements.txt`
+
 ### 2.Run
 `python main.py`
 
@@ -21,6 +23,7 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
 | Deepwalk（f1-micro） | 0.8524 | 0.7131 |
 |   Line（f1-micro）   |   -    |   -    |
 | Node2vec（f1-micro） | 0.8505 | 0.7027 |
+
 ## Visualization
 <table>
     <tr>
@@ -29,27 +32,11 @@ Create a virtual environment `conda create -n python36 python==3.6.5`, then `pip
         <td ><center><img src="https://github.com/Deeachain/GraphEmbeddings/blob/master/output/visualization/node2vec_cora_edges.png"><div align="center">Node2Vec_Cora</div></center></td>
     </tr>
 </table>
-<table>
-    <thead>
-        <tr>
-            <th>名称</th>
-            <th>值</th>
-            <th>备注</th>
-        </tr>
-    </thead>
-    <tbody>
-            <th>cora</th>
-            <th>kekek</th>
-            <th>fuh</th>
-    </tbody>
-</table>
-
-
-
 
 ## Updating
 - [ ] Line
 The visualization of Embeddings study by Line is terrible,I'm fixing....
+
 ## Reference
 [1] [Deepwalk Source code](https://github.com/phanein/deepwalk)  
 [2] [Line Code]()  
