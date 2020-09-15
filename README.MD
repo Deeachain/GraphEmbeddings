@@ -39,5 +39,5 @@ The visualization of Embeddings study by Line is terrible,I'm fixing....
 
 ## Reference
 [1] [Deepwalk Source code](https://github.com/phanein/deepwalk)  
-[2] [Line Code]()  
+[2] [Line Source Code C++](https://github.com/tangjianpku/LINE)  
 [3] [Node2Vec Source code](https://github.com/aditya-grover/node2vec)  
