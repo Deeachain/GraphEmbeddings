@@ -75,7 +75,7 @@ def get_alias_node(G):
         unnormalized_probs.append(pow(node_degree[node], 0.75))
 
     norm_const = sum(unnormalized_probs)
-    normalized_probs = [float(pow(u_prob, 0.75)) / norm_const for u_prob in unnormalized_probs]
+    normalized_probs = [u_prob / norm_const for u_prob in unnormalized_probs]
 
     return alias_setup(normalized_probs), index2node
 
