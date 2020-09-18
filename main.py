@@ -22,16 +22,16 @@ def parse_args():
     Parses the node2vec arguments.
     '''
     parser = argparse.ArgumentParser(description="Run deepwalk、line、node2vec.")
-    parser.add_argument('--model_name', type=str, default='line',
+    parser.add_argument('--model_name', type=str, default='deepwalk',
                         help='Model choice in [deepwalk、line、node2vec]')
-    # parser.add_argument('--input', type=str, default='graph/cora/progressed/cora_edges.txt',
-    #                     help='Input graph path')
-    # parser.add_argument('--input_label', type=str, default='graph/cora/progressed/cora_labels.txt',
-    #                     help='Input graph path')
-    parser.add_argument('--input', type=str, default='graph/dblp/progressed/dblp_adjedges.adjlist',
+    parser.add_argument('--input', type=str, default='graph/cora/progressed/cora_edges.txt',
                         help='Input graph path')
-    parser.add_argument('--input_label', type=str, default='graph/dblp/progressed/dblp_preprogress_labels.txt',
+    parser.add_argument('--input_label', type=str, default='graph/cora/progressed/cora_labels.txt',
                         help='Input graph path')
+    # parser.add_argument('--input', type=str, default='graph/dblp/progressed/dblp_adjedges.adjlist',
+    #                     help='Input graph path')
+    # parser.add_argument('--input_label', type=str, default='graph/dblp/progressed/dblp_preprogress_labels.txt',
+    #                     help='Input graph path')
     parser.add_argument('--output_emb', type=str, default='output/embedding/',
                         help='Embeddings path')
     parser.add_argument('--output_pic', type=str, default='output/visualization/',
@@ -46,11 +46,13 @@ def parse_args():
                         help='Number of walks per source. Default is 50.')
     parser.add_argument('--window-size', type=int, default=10,
                         help='Context size for optimization. Default is 10.')
+    parser.add_argument('--ns_hs', type=int, default=1,
+                        help='negative sample=0; Hierarchical softmax=1')
     parser.add_argument('--order', type=str, default='second',
                         help='Compute order proximity of line')
     parser.add_argument('--num_negative', type=int, default=5,
                         help='Number of negativate sample. Default is 5.')
-    parser.add_argument('--iter', default=150, type=int,
+    parser.add_argument('--iter', default=5, type=int,
                         help='Number of epochs in SGD, Line Defalut should ')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batchsize for line')
